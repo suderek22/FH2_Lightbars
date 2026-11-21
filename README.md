@@ -1,5 +1,7 @@
 # PoliceLightbars 0.2.1 test build
 
+<img width="800" height="450" alt="fh2-lightbars" src="https://github.com/user-attachments/assets/676b2024-a58c-4da5-b3ca-4b2a7970f484" />
+
 PoliceLightbars adds amber and blue roof lightbars to 31 cars
 in offline Forza Horizon 2 on Azimuth with FH2 Mod Platform 2.9.1.
 
