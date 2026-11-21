@@ -16,7 +16,7 @@ from PackAssets import add_labels, build_lamp_materials, fix_vertex_layout, repl
 from RoofLights import build_roof_lights, preset_records
 from PositionLightbar import position_lightbar
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 CHARGER = "DOD_ChargerSRT8_12"
 CHARGER_SHIFT = (0.25, -0.14)
 
