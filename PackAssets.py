@@ -74,10 +74,10 @@ def path_ref(path):
     return bytes([len(path)]) + path
 
 
-def retarget(instance, old_name, new_name):
+def retarget(instance, old_name, new_name, car):
     old_path = (b"Game:\\Media\\cars\\_library\\materials\\basematerials\\"
                 + old_name + b".materialbin")
-    new_path = b"Game:\\Media\\cars\\alf_4c_14\\materials\\lightbars\\" + new_name + b".materialbin"
+    new_path = b"Game:\\Media\\cars\\" + car + b"\\materials\\lightbars\\" + new_name + b".materialbin"
     return rewrite_material(instance, {b"ITAM": [(path_ref(old_path), path_ref(new_path))]})
 
 
@@ -85,18 +85,18 @@ def texture_ref(path):
     return path_ref(path) + struct.pack("<I", zlib.crc32(path.lower()))
 
 
-def link_textures(material, assignments):
+def link_textures(material, assignments, car):
     replacements = []
     for original, name in assignments:
         index = material.index(original)
         start = material.rindex(b"Game:", 0, index)
         end = material.index(b".swatchbin", index) + len(b".swatchbin")
         src = material[start:end]
-        dest = b"Game:\\Media\\cars\\alf_4c_14\\textures\\lightbars\\" + name.encode("ascii")
+        dest = b"Game:\\Media\\cars\\" + car + b"\\textures\\lightbars\\" + name.encode("ascii")
         replacements.append((texture_ref(src), texture_ref(dest)))
     return rewrite_material(material, {b"RPTM": replacements})
 
-def build_emitter(marker_model, variant, texture):
+def build_emitter(marker_model, variant, texture, car):
     """Use the stock Nissan marker's channel-driven lens material instance."""
     channel = bytes.fromhex("0200a0733049040d000000")
     mask_name = b"light_33_mask_"
@@ -113,13 +113,13 @@ def build_emitter(marker_model, variant, texture):
         (tint_marker + color, tint_marker + struct.pack("<4f", *rgb, 1.0)),
         (gain, gain[:-4] + struct.pack("<f", 4.0)),
     ]})
-    textured = link_textures(tinted, [(mask_name, texture)])
+    textured = link_textures(tinted, [(mask_name, texture)], car)
     return tuple(
         rewrite_material(textured, {b"RPTM": [(channel, channel[:-4] + struct.pack("<I", value))]})
         for value in (0x31, 0x32)
     )
 
-def build_lamp_materials(library, marker_model, original_model, variant, textures):
+def build_lamp_materials(library, marker_model, original_model, variant, textures, car):
     glass_instance = next(blob for blob in material_blobs(marker_model)
                           if b"\\gls_amber.materialbin" in blob)
     plastic_instance = next(blob for blob in material_blobs(original_model)
@@ -129,13 +129,13 @@ def build_lamp_materials(library, marker_model, original_model, variant, texture
         glass = tint_material(glass, 0x1925D9BF, (1.0, 0.3613068163394928, 0.0),
                               (0.018, 0.22, 1.0))
     glass_name = f"glass_{variant}".encode("ascii")
-    lens = retarget(glass_instance, b"gls_amber", glass_name)
-    positive, negative = build_emitter(marker_model, variant, textures["led"][0])
+    lens = retarget(glass_instance, b"gls_amber", glass_name, car)
+    positive, negative = build_emitter(marker_model, variant, textures["led"][0], car)
     housing = link_textures(library.read("basematerials/blkplastic_mgl.materialbin"), [
         (b"defaultshaderb_diff_", textures["plastic_color"][0]),
         (b"dtl_roughtexture_001_nrml_", textures["plastic_normal"][0]),
-    ])
-    housing_instance = retarget(plastic_instance, b"blkplastic_mgl", b"housing")
+    ], car)
+    housing_instance = retarget(plastic_instance, b"blkplastic_mgl", b"housing", car)
     return {0: housing_instance, 1: housing_instance, 2: positive, 3: negative, 4: lens, 5: lens, 6: lens}, {
         f"Materials/lightbars/{glass_name.decode()}.materialbin": glass,
         "Materials/lightbars/housing.materialbin": housing,

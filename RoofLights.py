@@ -29,7 +29,7 @@ def take_lights(data):
     offset += 4
     end = offset + count * RECORD.size
     records = list(RECORD.iter_unpack(data[offset:end]))
-    if len(records) != count or len(data) - end != 4:
+    if len(records) != count or len(data) - end < 4 or len(data) - end != 4 + 72 * struct.unpack_from("<I", data, end)[0]:
         raise ValueError("Unexpected light record count or LOD data")
     return attachments, records, data[end:]
 
@@ -64,18 +64,17 @@ def fields(record):
     return result
 
 
-def build_roof_lights(stock, donor):
+def build_roof_lights(stock, donor, car, offset_y, offset_z, preset_template):
     attachments, lights, suffix = take_lights(stock["Lights.bin"])
     source_attachments, source_lights, _ = take_lights(donor.read("Lights.bin"))
     stock_presets = preset_records(stock["LightPresets.bin"], 1)
     source_presets = preset_records(donor.read("LightPresets.bin"), 3)
-    if len(stock_presets) != 12:
-        raise ValueError("Unexpected stock 4C preset count")
     slots = {}
     for old_index, attachment in enumerate(source_attachments):
         if b"\\lightbars\\" in attachment.lower():
             slots[old_index] = len(attachments)
-            attachments.append(attachment)
+            name = attachment[4:-2].replace(b"alf_4c_14", car)
+            attachments.append(struct.pack("<I", len(name)) + name + attachment[-2:])
     if len(slots) != 2:
         raise ValueError("Expected an FH6 amber and blue model attachment")
     counts = [0, 0, 0, 0]
@@ -85,8 +84,10 @@ def build_roof_lights(stock, donor):
         bank = (2 if LIGHTBAR_PRESETS[preset] == "blue" else 0) + ((flags & 0xFF) == 0x32)
         # The plugin drives the two roof channels before FH2 positions attached lights.
         # Keep the glow centered on the lens with a small clearance.
-        transform[1] += 0.02
-        transform[9] += 0.02
+        transform[1] += 0.02 + offset_y
+        transform[2] += offset_z
+        transform[9] += 0.02 + offset_y
+        transform[10] += offset_z
         lights.append((len(stock_presets) + bank, 0x20031 + (bank & 1), slots[attachment], *transform))
         counts[bank] += 1
     if counts != [11, 11, 11, 11]:
@@ -96,7 +97,7 @@ def build_roof_lights(stock, donor):
         + struct.pack("<I", len(lights)) + b"".join(RECORD.pack(*light) for light in lights) + suffix
     )
     records = list(stock_presets.values())
-    template = fields(stock_presets[9])
+    template = fields(preset_template)
     for bank, light_range in enumerate(BANK_RANGES):
         source = fields(source_presets[0x8E50E16E if bank >= 2 else 0x81DBF4E6])
         attributes = {**template, **source}
