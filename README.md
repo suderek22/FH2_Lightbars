@@ -2,6 +2,9 @@
 
 Add an amber or blue flashing roof lightbar to 31 cars in Forza Horizon 2. Buy and fit either color from **Upgrades > Aero and Appearance > Hood** (called **Bonnet** in some locales). The lightbars flash in the garage and in free roam.
 
+<img width="800" height="450" alt="fh2-lightbars" src="https://github.com/user-attachments/assets/30b700e5-7463-467a-99db-47d37af91202" />
+
+
 ## Requirements
 
 - Forza Horizon 2 running in Azimuth.
