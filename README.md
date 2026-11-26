@@ -32,4 +32,6 @@ The lineup includes the 2014 Alfa Romeo 4C, the 2012 Dodge Charger SRT8, and 29 
 
 The DLL registers the upgrades and loads the lightbar assets over the existing game files. The download includes the DLL and requires no car ZIPs or `fh2-cars` folder. Mods that override the same car's `.carbin`, `Lights.bin`, or `LightPresets.bin` can conflict with PoliceLightbars. Using both on the same car requires a merged version of those files.
 
+[LicencePlate](https://github.com/Philipp55112/fh2-licence-plate) got compatibility in version 0.3.4. Check [integration notes](mods_integration.md).
+
 See the [changelog](CHANGELOG.md) for release details and verification status.
