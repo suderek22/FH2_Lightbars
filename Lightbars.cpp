@@ -293,8 +293,11 @@ std::array<bool, std::size(plateScenes)> selectPlateScenes(const wchar_t* azimut
     const auto mods = std::filesystem::path(azimuth) / "mods" / "Forza Horizon 2";
     const auto plate = mods / "LicencePlates";
     std::error_code error;
-    if (!licencePlatesListed(mods) || !std::filesystem::is_regular_file(plate / "plugins" / "PlateLight.dll", error))
+    if (!std::filesystem::is_regular_file(plate / "plugins" / "PlateLight.dll", error) ||
+        !licencePlatesListed(mods)) {
+        platform->log(plugin, "LicencePlates: missing or disabled. Refreshing all 31 regular Lightbars scenes.");
         return selected;
+    }
     BCRYPT_ALG_HANDLE sha256 = nullptr;
     if (BCryptOpenAlgorithmProvider(&sha256, BCRYPT_SHA256_ALGORITHM, nullptr, 0) != 0) {
         platform->log(plugin, "LicencePlates: SHA-256 unavailable. Using regular Lightbars scenes.");
@@ -361,31 +364,41 @@ FROM List_UpgradeCarBodyHood stock
 CROSS JOIN (SELECT 90 AS UpgradeDelta, 7101 AS ManufacturerId UNION ALL SELECT 91, 7102) variant
 WHERE stock.CarBodyID IN (1115000, 2180000, 1220000, 1388000, 1350000, 1626000, 1419000, 2177000, 1620000, 1131000, 1460000, 2155000, 1345000, 2108000, 1522000, 2110000, 1221000, 1658000, 1627000, 1525000, 1202000, 1009000, 2002000, 445000, 2293000, 1060000, 2393000, 1231000, 2156000) AND stock.Id=stock.CarBodyID AND stock.IsStock=1;
 )SQL");
-    api->apply_database(plugin);
     const auto plates = selectPlateScenes(api->azimuth_dir);
-    for (const auto& entry : overrides) {
-        WORD id = entry.resource;
-        const char* extension = std::strrchr(entry.path, '.');
-        if (extension && std::strcmp(extension, ".carbin") == 0) {
-            const char* file = std::strrchr(entry.path, '/') + 1;
-            for (size_t i = 0; i < plates.size(); ++i) {
-                if (plates[i] && _stricmp(file, plateScenes[i].file) == 0) {
-                    id = plateScenes[i].resource;
-                    break;
+    const auto registerOverrides = [&](bool scenes) {
+        for (const auto& entry : overrides) {
+            WORD id = entry.resource;
+            const char* extension = std::strrchr(entry.path, '.');
+            const bool isScene = extension && _stricmp(extension, ".carbin") == 0;
+            if (isScene != scenes) continue;
+            if (scenes) {
+                const char* file = std::strrchr(entry.path, '/') + 1;
+                for (size_t i = 0; i < plates.size(); ++i) {
+                    if (plates[i] && _stricmp(file, plateScenes[i].file) == 0) {
+                        id = plateScenes[i].resource;
+                        break;
+                    }
                 }
             }
+            HRSRC resource = FindResourceW(module, MAKEINTRESOURCEW(id), MAKEINTRESOURCEW(10));
+            HGLOBAL loaded = resource ? LoadResource(module, resource) : nullptr;
+            const void* data = loaded ? LockResource(loaded) : nullptr;
+            if (!data || !api->set_file(plugin, entry.path, data, SizeofResource(module, resource))) {
+                api->log(plugin, entry.path);
+                return false;
+            }
         }
-        HRSRC resource = FindResourceW(module, MAKEINTRESOURCEW(id), MAKEINTRESOURCEW(10));
-        HGLOBAL loaded = resource ? LoadResource(module, resource) : nullptr;
-        const void* data = loaded ? LockResource(loaded) : nullptr;
-        if (!data || !api->set_file(plugin, entry.path, data, SizeofResource(module, resource))) {
-            api->clear_file(plugin, nullptr);
-            api->clear_sql(plugin);
-            api->apply_database(plugin);
-            api->log(plugin, entry.path);
-            api->log(plugin, "Failed to register lightbar assets. Cleared this mod's file overrides.");
-            return 1;
-        }
+        return true;
+    };
+    // Replace every scene before publishing Hood rows or writing other assets.
+    const bool scenesReady = registerOverrides(true);
+    if (scenesReady) api->apply_database(plugin);
+    if (!scenesReady || !registerOverrides(false)) {
+        api->clear_file(plugin, nullptr);
+        api->clear_sql(plugin);
+        api->apply_database(plugin);
+        api->log(plugin, "Failed to register lightbar assets. Cleared this mod's file overrides.");
+        return 1;
     }
     api->log(plugin, "Lightbar file overrides registered for 31 cars.");
     api->set_string(plugin, "List_PartManufacturer.str", 0xF812, L"Amber Lightbar");

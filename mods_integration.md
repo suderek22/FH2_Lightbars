@@ -1,4 +1,4 @@
-﻿# PoliceLightbars mod integrations
+# PoliceLightbars mod integrations
 
 ## LicencePlates 1.0.0
 
@@ -23,7 +23,7 @@ At FH2 Mod Platform initialization, Lightbars looks under `mods/Forza Horizon 2`
 
 For each supported car, Lightbars hashes the installed `LicencePlates/media/cars/<car>/<car>.carbin.json`. A matching hash selects the corresponding combined scene. If the patch is missing or has changed, that car uses the regular Lightbars scene and the reason is recorded in `fh2-mods/platform.log`. An edit that only changes JSON formatting also changes the hash. The lookup is per car, so a changed patch for one car does not affect the rest. With LicencePlates absent or unlisted, every car uses its regular Lightbars scene.
 
-The DLL registers the selected scene at the usual `cars/<car>/<car>.carbin` override path. This selection runs at startup. Restart Azimuth after enabling, disabling, or updating LicencePlates.
+The DLL registers the selected scene at the usual `cars/<car>/<car>.carbin` override path. This selection runs at startup. The DLL refreshes all 31 scene overrides before publishing the Hood upgrades or registering other assets. With LicencePlates missing or disabled, the log reports that it is refreshing the regular scenes. Restart Azimuth after enabling, disabling, or updating LicencePlates.
 
 ### Which mod supplies each feature
 

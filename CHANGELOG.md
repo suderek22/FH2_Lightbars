@@ -3,6 +3,7 @@
 ## 0.3.4
 
 - Added optional LicencePlates 1.0.0 integration for all 31 supported cars. See [mod integrations](mods_integration.md).
+- Refresh all car scene overrides before publishing the Hood upgrades or registering the other assets. When LicencePlates is missing or disabled, restore the regular Lightbars scenes and log the refresh.
 
 ## 0.3.3
 
