@@ -1,0 +1,65 @@
+{
+  "format": "fh2-carbin-patch",
+  "format_version": 1,
+  "base_sha256": "5deb286e7c206a4f366d12e94e59c11ff9c04fe9bd781c75546757ade1966fb3",
+  "ordinal": 2038,
+  "media_name": "alf_4c_14",
+  "parts": [
+    {
+      "op": "merge",
+      "key": 2,
+      "models": [
+        {
+          "op": "upsert",
+          "key": "5dfa3a28f45ea8cd1418d5cf1157d406",
+          "value": {
+            "version": 15,
+            "path": "game:\\media\\cars\\alf_4c_14\\scene\\exterior\\hzn\\hzn_glassr_a.modelbin",
+            "transform_hex": "0000803f000000000000000000000000000000000000803f000000000000000000000000000000000000803f000000000000000000000000000000000000803f",
+            "lod": 127,
+            "bone_name": "<root>",
+            "bone_index": 0,
+            "flags": 0,
+            "draw_groups": 5,
+            "material_overrides": [],
+            "material_indices": [
+              {
+                "name": "HZN_p1",
+                "value": 0
+              },
+              {
+                "name": "HZN_rv",
+                "value": 0
+              },
+              {
+                "name": "HZN_ao",
+                "value": 0
+              },
+              {
+                "name": "HZN_lt",
+                "value": 0
+              }
+            ],
+            "has_hash": 0,
+            "hash_hex": "",
+            "unknown8_hex": "0000003f",
+            "ao_maps": [
+              {
+                "version": 3,
+                "path": "",
+                "data_hex": "ffffffffffffffff0000000000000000000000000000000001001f"
+              }
+            ],
+            "unknown10_hex": "00",
+            "unknown11_hex": "010100000000010000000000000001000000",
+            "part_name": "Windows",
+            "guid": "5dfa3a28f45ea8cd1418d5cf1157d406",
+            "unknown14_hex": "0000000000000000000000000000000000000000",
+            "unknown15_hex": "01000000"
+          }
+        }
+      ]
+    }
+  ],
+  "groups": []
+}
